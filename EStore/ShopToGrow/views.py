@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 # Create your views here.
 class ProductAPI(APIView):
+    # postapi----------------------------------------------------------------------------
     def post(self,request):
         serializer=ProductSerializer(data = request.data)
         if serializer.is_valid():
@@ -17,6 +18,31 @@ class ProductAPI(APIView):
     def get_object(self,id):
         return get_object_or_404(Product,id=id)
 
+    #PUT-Method---------------------------------------------------------------------------------
+    def put(self,request,id):
+        products=self.get_object(id)
+        serializers=ProductSerializer(products,data=request.data)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors)
+    # patch----------------------------------------------------------------------------------
+    def patch(self,request,id):
+        products=self.get_object(id)
+        serializers=ProductSerializer(products,data=request.data,partial=True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors)
+    
+    def delete(self,request,id):
+        products=self.get_object(id)
+        products.delete()
+        return Response({'message':"producd is deleted from the table"})
+        
+      
+    
+# get api------------------------------------------------------------------------------
     def get(self,request, id=None):
         # Agar ID di ho → single product
         if id is not None:
