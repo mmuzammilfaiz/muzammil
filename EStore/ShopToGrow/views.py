@@ -3,10 +3,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializer import ProductSerializer
+from .serializer import CategorySerializer
 from .models import Product
+from .models import Category
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 # Create your views here.
+
+# product******************************************************************************************************************
 class ProductAPI(APIView):
     # postapi----------------------------------------------------------------------------
     def post(self,request):
@@ -68,4 +73,59 @@ class ProductAPI(APIView):
         serializers =ProductSerializer(products, many=True)     
         return Response(serializers.data)
     
+class CategoryAPI(APIView):
+    # Post-Method------------------------------------------------------------------------------
+    def post(self,request):
+        serializer=CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    
+     #helper function-------------------------------------------------------------------------
+    def get_object(self,id):
+        return get_object_or_404(Category,id=id)
 
+    #PUT-Method---------------------------------------------------------------------------------
+    def put(self,request,id):
+        category=self.get_object(id)
+        serializers=CategorySerializer(category,data=request.data)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors)
+    
+    #Patch-Method---------------------------------------------------------------------------------
+    def patch(self,request,id):
+        category=self.get_object(id)
+        serializers=CategorySerializer(category,data=request.data, partial= True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data)
+        return Response(serializers.errors)
+    
+    #Delete-Method------------------------------------------------------------------------------
+    def delete(self,request, id):
+        category=self.get_object(id)
+        
+        category.delete()
+        return Response({"message":"category deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
+    
+    # Get-Method----------------------------------------------------------------------------------
+
+    def get(self,request, id=None):
+
+        # Agar ID di ho → single product
+        if id is not None:
+            try:
+                category = Category.objects.get(id=id)
+            except Category.DoesNotExist:
+                raise Http404("Product not found")
+            
+            # category = self.get_object(id)
+            serializer = CategorySerializer(category)
+            return Response(serializer.data)
+        
+        category= Category.objects.all()
+        serializers =CategorySerializer(category, many=True)     
+        return Response(serializers.data)
