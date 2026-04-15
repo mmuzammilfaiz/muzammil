@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 # Create your views here.
 
-# product******************************************************************************************************************
+# product$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 class ProductAPI(APIView):
     # postapi----------------------------------------------------------------------------
     def post(self,request):
@@ -72,6 +72,7 @@ class ProductAPI(APIView):
 
         serializers =ProductSerializer(products, many=True)     
         return Response(serializers.data)
+    # category$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     
 class CategoryAPI(APIView):
     # Post-Method------------------------------------------------------------------------------
@@ -129,3 +130,12 @@ class CategoryAPI(APIView):
         category= Category.objects.all()
         serializers =CategorySerializer(category, many=True)     
         return Response(serializers.data)
+    
+class ProductByCategoryAPI(APIView):
+    def get(self,request,category_id):
+        category=get_object_or_404(Category,id=category_id)
+        product=Product.objects.filter(category=category)
+
+        serializer=ProductSerializer(product,many=True)
+        return Response(serializer.data)
+    
