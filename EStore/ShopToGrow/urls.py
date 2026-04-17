@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProductAPI,LoginAPI,CategoryAPI,ProductByCategoryAPI
+from .views import ProductAPI,LoginAPI,CategoryAPI,ProductByCategoryAPI,SignInAPI
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -12,5 +12,6 @@ urlpatterns = [
     path('category/<int:id>/',CategoryAPI.as_view()),
     path('products/category/<int:category_id>',ProductByCategoryAPI.as_view()),
     path('login/',LoginAPI.as_view()),
+    path('signin/',SignInAPI.as_view()),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
