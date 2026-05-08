@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: #333; }
+        .user-info { margin: 20px 0; font-size: 18px; }
+        button {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Dashboard</h1>
+        <div class="user-info" id="userInfo">Loading...</div>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        // Check if tokens are in URL (from Google Login redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const access = urlParams.get('access');
+        const refresh = urlParams.get('refresh');
+        const username = urlParams.get('username');
+
+        if (access && refresh) {
+            localStorage.setItem('accessToken', access);
+            localStorage.setItem('refreshToken', refresh);
+            localStorage.setItem('username', username);
+            localStorage.setItem('isLoggedIn', 'true');
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        if (!isLoggedIn) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('userInfo').innerText = "Logged in as: " + localStorage.getItem('username');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

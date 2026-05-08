@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f1a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1rem;
+            color: #a78bfa;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #2d2d44;
+            background: #0f0f1a;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .msg {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .msg.success {
+            background: #065f46;
+            border: 1px solid #10b981;
+            color: #6ee7b7;
+            display: block;
+        }
+
+        .msg.error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            display: block;
+        }
+
+        .token-box {
+            font-size: 0.75rem;
+            color: #a78bfa;
+            word-break: break-all;
+            background: #0f0f1a;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .stars {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .star {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #2d2d44;
+            transition: color 0.15s;
+        }
+
+        .star.active {
+            color: #fbbf24;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Review Tester</h1>
+
+        <!-- STEP 1: LOGIN -->
+        <div class="card">
+            <h2>Step 1 — Login (Get JWT Token)</h2>
+            <input type="text" id="username" placeholder="Username" />
+            <input type="password" id="password" placeholder="Password" />
+            <button onclick="doLogin()" id="loginBtn">Login</button>
+            <div id="loginMsg" class="msg"></div>
+            <div id="tokenBox" class="token-box"></div>
+        </div>
+
+        <!-- STEP 2: ADD REVIEW -->
+        <div class="card">
+            <h2>Step 2 — Add Review</h2>
+            <label>Product ID:</label>
+            <input type="number" id="productId" placeholder="Product ID (e.g. 23)" value="23" />
+            <label>Rating:</label>
+            <div class="stars">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
+            </div>
+            <input type="hidden" id="ratingVal" value="0" />
+            <label>Comment:</label>
+            <textarea id="comment" rows="3" placeholder="Write your review here..."></textarea>
+            <button onclick="submitReview()" id="reviewBtn">Submit Review</button>
+            <div id="reviewMsg" class="msg"></div>
+        </div>
+    </div>
+
+    <script>
+        let accessToken = '';
+        let selectedRating = 0;
+
+        function setRating(val) {
+            selectedRating = val;
+            document.getElementById('ratingVal').value = val;
+            document.querySelectorAll('.star').forEach((s, i) => {
+                s.classList.toggle('active', i < val);
+            });
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const msg = document.getElementById('loginMsg');
+            const btn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                showMsg(msg, 'Please enter both username and password.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    accessToken = data.access;
+                    showMsg(msg, 'Login successful! You can now add a review.', 'success');
+                    const box = document.getElementById('tokenBox');
+                    box.style.display = 'block';
+                    box.textContent = 'Token: ' + accessToken.substring(0, 60) + '...';
+                } else {
+                    showMsg(msg, 'Error: ' + (data.detail || data.error || 'Login failed'), 'error');
+                }
+            } catch (e) {
+                showMsg(msg, 'Could not connect to server. Is Django running?', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        }
+
+        async function submitReview() {
+            const msg = document.getElementById('reviewMsg');
+            const btn = document.getElementById('reviewBtn');
+            const productId = document.getElementById('productId').value;
+            const rating = selectedRating;
+            const comment = document.getElementById('comment').value.trim();
+
+            if (!accessToken) {
+                showMsg(msg, 'Please login first (Step 1).', 'error');
+                return;
+            }
+            if (!productId) {
+                showMsg(msg, 'Please enter a Product ID.', 'error');
+                return;
+            }
+            if (rating === 0) {
+                showMsg(msg, 'Please select a rating (1-5 stars).', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/products/${productId}/add-review/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ rating, comment })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showMsg(msg, 'Review submitted successfully!', 'success');
+                    document.getElementById('comment').value = '';
+                    setRating(0);
+                } else {
+                    showMsg(msg, 'Error: ' + (data.error || data.detail || JSON.stringify(data)), 'error');
+                }
+            } catch (e) {
+                showMsg(msg, 'Could not connect to server.', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Submit Review';
+        }
+
+        function showMsg(el, text, type) {
+            el.textContent = text;
+            el.className = 'msg ' + type;
+        }
+    </script>
+</body>
+
+</html>
